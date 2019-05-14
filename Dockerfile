@@ -9,4 +9,6 @@ COPY . .
 
 RUN yarn install
 
+EXPOSE 4004
+
 CMD ["yarn", "start:prod"]

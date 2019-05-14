@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 
 services:
   backend:
@@ -6,6 +6,5 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    command: sh -c 'yarn install; yarn start:prod'
     ports:
       - 82:4004
