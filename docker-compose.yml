@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  backend:
+    image: node:11.1.0-alpine
+    volumes:
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    command: sh -c 'yarn install; yarn prod'
+    ports:
+      - 82:4004
