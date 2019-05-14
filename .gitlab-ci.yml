@@ -1,0 +1,15 @@
+image: tmaier/docker-compose:latest
+
+services:
+  - docker:dind
+
+stages:
+  - Build production image
+
+build production:
+  stage: Build production image
+  only:
+  - master
+  script:
+  - docker info
+  - docker-compose up -d --build
