@@ -3,6 +3,8 @@ version: '2'
 services:
   backend:
     build: .
+    restart: always
+    container_name: tickytook-backend
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
