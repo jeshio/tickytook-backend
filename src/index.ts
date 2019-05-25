@@ -1,56 +1,74 @@
+import 'module-alias/register';
 import Fastify from 'fastify';
 import fastifyCors from 'fastify-cors';
 import axios from 'axios';
 import { Server, IncomingMessage, ServerResponse } from 'http';
+import Az from 'az';
+import WordsMorphFacade from './facades/WordsMorphFacade';
 
-module.exports = function (fastify: Fastify.FastifyInstance<
-  Server,
-  IncomingMessage,
-  ServerResponse
->, options: any, next: () => void) {
-  fastify.register(fastifyCors, {
-    origin: /(localhost)|(tickytook\.ru):*/i,
-  });
+module.exports = function(
+	fastify: Fastify.FastifyInstance<Server, IncomingMessage, ServerResponse>,
+	options: any,
+	next: () => void
+) {
+	fastify.register(fastifyCors, {
+		origin: /(localhost)|(tickytook\.ru):*/i,
+	});
 
-  const opts: Fastify.RouteShorthandOptions = {
-    schema: {
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            result: {
-              type: 'array',
-              items: {
-                type: 'string',
-              },
-            },
-          },
-        },
-      },
-    },
-  };
+	const opts: Fastify.RouteShorthandOptions = {
+		schema: {
+			response: {
+				200: {
+					type: 'object',
+					properties: {
+						result: {
+							type: 'array',
+							items: {
+								type: 'string',
+							},
+						},
+					},
+				},
+			},
+		},
+	};
 
-  fastify.get<{ words?: string[] }>(
-    '/extra-words',
-    opts,
-    async (request, reply) => {
-      if (!request.query.words || request.query.words.length === 0) {
-        reply.code(200).send({ result: [] });
-        return;
-      }
+	fastify.post<{ words?: string[] }>(
+		'/extra-words',
+		opts,
+		async (request, reply) => {
+			const { words } = request.body;
+			const wordsArray = words || [];
 
-      const t = await axios.get('http://mytager.com/get_tags.php', {
-        params: {
-          words: request.query.words,
-          lang: 'ru',
-        },
-      });
-      const result = (t.data.matches || []).filter(
-        (s: string | undefined) => s && s.length > 0
-      );
+			if (!words || words.length === 0) {
+				reply.code(200).send({ result: [] });
+				return;
+			}
 
-      reply.code(200).send({ result });
-    }
-  );
-  next();
-}
+			const wordsMorphHandler = new WordsMorphFacade(wordsArray);
+
+			await wordsMorphHandler.init();
+
+			const keywords = [
+				...wordsMorphHandler.getLatins(),
+				...wordsMorphHandler.getNouns(),
+			].map(w => w.inflect()._word);
+
+			const t = await axios.get('http://mytager.com/get_tags.php', {
+				params: {
+					words: keywords.map(w => `#${w}`).join('+'),
+					lang: 'ru',
+				},
+			});
+
+			const queryWords = (t.data.matches || []).filter(
+				(s: string | undefined) => s && s.length > 0
+			);
+
+			const result = keywords.concat(queryWords);
+
+			reply.code(200).send({ result });
+		}
+	);
+	next();
+};
