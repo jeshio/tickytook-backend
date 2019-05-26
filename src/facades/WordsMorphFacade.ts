@@ -1,5 +1,5 @@
 import Az from 'az';
-import WordMorph from 'src/entities/WordMorph';
+import WordMorph from '../entities/WordMorph';
 
 export default class WordsMorphFacade {
 	original: string[] = [];

@@ -1,9 +1,8 @@
-import 'module-alias/register';
+// import 'module-alias/register';
 import Fastify from 'fastify';
 import fastifyCors from 'fastify-cors';
 import axios from 'axios';
 import { Server, IncomingMessage, ServerResponse } from 'http';
-import Az from 'az';
 import WordsMorphFacade from './facades/WordsMorphFacade';
 
 module.exports = function(
