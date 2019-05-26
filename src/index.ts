@@ -36,7 +36,7 @@ module.exports = function(
 		'/extra-words',
 		opts,
 		async (request, reply) => {
-			const { words } = request.body;
+			const words = request.body.words as string[];
 			const wordsArray = words || [];
 
 			if (!words || words.length === 0) {
@@ -55,7 +55,9 @@ module.exports = function(
 
 			const t = await axios.get('http://mytager.com/get_tags.php', {
 				params: {
-					words: keywords.map(w => `#${w}`).join('+'),
+					words: (keywords.length > 0 ? keywords : words)
+						.map(w => `#${w}`)
+						.join('+'),
 					lang: 'ru',
 				},
 			});
