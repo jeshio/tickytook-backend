@@ -4,6 +4,7 @@ import fastifyCors from 'fastify-cors';
 import axios from 'axios';
 import { Server, IncomingMessage, ServerResponse } from 'http';
 import WordsMorphFacade from './facades/WordsMorphFacade';
+import blackListWords from './blackListWords';
 
 module.exports = function(
 	fastify: Fastify.FastifyInstance<Server, IncomingMessage, ServerResponse>,
@@ -62,8 +63,14 @@ module.exports = function(
 				},
 			});
 
-			const queryWords = (t.data.matches || []).filter(
-				(s: string | undefined) => s && s.length > 0
+			const { matches, top } = t.data;
+
+			const queryWords = (matches || []).filter(
+				(s: string | undefined) =>
+					s &&
+					s.length > 0 &&
+					top.indexOf(s) < 0 &&
+					blackListWords.indexOf(s) < 0
 			);
 
 			const result = keywords.concat(queryWords);
